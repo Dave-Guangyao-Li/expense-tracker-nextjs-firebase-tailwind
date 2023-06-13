@@ -1,5 +1,5 @@
 - [Build a NextJS 13 App with Firebase & Tailwind CSS](https://www.youtube.com/watch?v=uikATllLdRc&t=647s)
-- progress: 12:37 / 37:33
+- progress: 12:37 / 37:33 in progress
 
 ```javascript
 npm i -g create-next-app
