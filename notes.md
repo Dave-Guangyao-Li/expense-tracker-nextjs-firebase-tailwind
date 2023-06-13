@@ -1,3 +1,5 @@
+- [Build a NextJS 13 App with Firebase & Tailwind CSS](https://www.youtube.com/watch?v=uikATllLdRc&t=647s)
+
 ```javascript
 npm i -g create-next-app
 npx create-next-app . // np typescript, no eslint, no prettier, with tailwindcss, and app routing, no src folder.

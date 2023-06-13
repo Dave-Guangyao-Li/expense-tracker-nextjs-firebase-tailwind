@@ -5,7 +5,7 @@ import React, {
 import Image from 'next/image'
 
 export default function Home() {
-  const [item, setItems] = useState([
+  const [items, setItems] = useState([
     { name: 'coffee', price: 4.95 },
     { name: 'tea', price: 3.95 },
     { name: 'scone', price: 2.95 },
@@ -25,7 +25,7 @@ export default function Home() {
         </form>
 
         <ul>
-          {item.map((item, index) => (
+          {items.map((item, index) => (
             <li key={index} className='flex justify-between my-4 w-full text-white bg-slate-950'>
               <div className='p-4 w-full flex justify-between'>
                 <span className='capitalize'>{item.name}</span>
@@ -34,6 +34,15 @@ export default function Home() {
               <button className='ml-8 p-4 border-l-2 border-slate-900 hover:bg-slate-900 w-16'>X</button>
             </li>
           ))}
+          {items.length < 1 ? (
+            <div className='flex justify-between p-3 text-white'>
+              <span>No Items</span>
+            </div>) : (
+            <div className='flex justify-between p-3 text-white'>
+              <span>Total</span>
+              <span>${total}</span>
+            </div>
+          )}
         </ul>
       </div >
     </main >
