@@ -3,7 +3,7 @@ import React, {
   useState, useEffect
 } from 'react'
 import Image from 'next/image'
-import { collection, addDoc, getDocs, onSnapshot } from "firebase/firestore"; // import the firestore functions we need, addDoc is for adding a document to a collection, collection is for getting a collection. getDocs is for getting all the documents in a collection
+import { collection, addDoc, getDocs, onSnapshot, doc, deleteDoc, query } from "firebase/firestore"; // import the firestore functions we need, addDoc is for adding a document to a collection, collection is for getting a collection. getDocs is for getting all the documents in a collection
 import { db } from './firebase' // import the db object we created in firebase.js
 
 export default function Home() {
@@ -28,7 +28,6 @@ export default function Home() {
         });
         console.log("Document written with ID: ", docRef.id);
         // set items with unique id
-        setItems([...items, { ...newItem }]) // add the newItem to the items array
         setNewItem({ name: '', price: '' })// reset newItem to empty strings
       } catch (e) {
         console.error("Error adding document: ", e);
@@ -37,30 +36,31 @@ export default function Home() {
     }
   }
 
-  useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, 'items'), (snapshot) => { // onSnapshot is a listener that will run every time the items collection changes, snapshot is the data that is returned,
-      const updatedItems = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })); // output: [{id: '123', name: 'coffee', price: 4.95}, {id: '456', name: 'tea', price: 3.95}]
-      setItems(updatedItems);
-    });
 
-    return () => unsubscribe(); // this is the cleanup function, it will run when the component is unmounted
+  // Read items from database
+  useEffect(() => {
+    const q = query(collection(db, 'items')); // create a query to get all the documents in the items collection
+    const unsubscribe = onSnapshot(q, (querySnapshot) => { // onSnapshot will run every time the items collection changes, and it will give us a snapshot of the items collection
+      let itemsArr = [];
+
+      querySnapshot.forEach((doc) => { // loop through the snapshot and push each document into the itemsArr
+        itemsArr.push({ ...doc.data(), id: doc.id });
+      });
+      setItems(itemsArr); // set the items state to the itemsArr
+
+      // Read total from itemsArr
+      const calculateTotal = () => {
+        const totalPrice = itemsArr.reduce(
+          (sum, item) => sum + parseFloat(item.price),
+          0
+        );
+        setTotal(totalPrice);
+      };
+      calculateTotal();
+      return () => unsubscribe();
+    });
   }, []);
 
-  // read items from database
-  useEffect(() => {
-    const getItems = async () => {
-      const querySnapshot = await getDocs(collection(db, "items")); // get all the documents in the items collection
-      let tempItems = []; // create a temporary array to hold the items
-      querySnapshot.forEach((doc) => {
-        // doc.data() is never undefined for query doc snapshots
-        console.log(doc.id, " => ", doc.data());
-        tempItems.push(doc.data()); // add each item to the tempItems array
-      });
-      setItems(tempItems);
-    }
-    getItems(); // this is to call the function we just created, otherwise it will never run
-
-  }, []) // the empty array as the second argument means this will only run once, when the component is mounted
 
 
   // calculate total, this will run every time the items array changes
@@ -75,6 +75,15 @@ export default function Home() {
   }, [items])
 
   // delete item from database
+  const deleteItem = async (id) => {
+    try {
+      await deleteDoc(doc(db, "items", id)); // delete the document with the id that was passed in
+      console.log('item deleted')
+    } catch (e) {
+      console.error("Error removing document: ", e);
+    }
+  }
+
 
   return (
     <main className="flex min-h-screen flex-col items-center sm:p-24 p-4">
@@ -109,7 +118,9 @@ export default function Home() {
                 <span className='capitalize'>{item.name}</span>
                 <span>${item.price}</span>
               </div>
-              <button className='ml-8 p-4 border-l-2 border-slate-900 hover:bg-slate-900 w-16'>X</button>
+              <button
+                onClick={() => deleteItem(item.id)} // target the deleteItem function and pass in the id of the item we want to delete
+                className='ml-8 p-4 border-l-2 border-slate-900 hover:bg-slate-900 w-16'>X</button>
             </li>
           ))}
           {items.length < 1 ? (
